@@ -1,15 +1,18 @@
 import os
-from celery import Celery
 import openai
+import requests
+from celery import Celery
 from twilio.rest import Client
 from flask import Flask, request, Response
-import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure Twilio, OpenAI, and Whisper API credentials
-twilio_account_sid = os.environ["TWILIO_ACCOUNT_SID"]
-twilio_auth_token = os.environ["TWILIO_AUTH_TOKEN"]
-twilio_phone_number = os.environ["TWILIO_PHONE_NUMBER"]
-openai_api_key = os.environ["OPENAI_API_KEY"]
+twilio_account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+twilio_auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # Set up the Celery app
 celery_app = Celery("tasks", broker=os.getenv('CELERY_BROKER_URL'), backend=os.getenv('CELERY_RESULT_BACKEND'))
