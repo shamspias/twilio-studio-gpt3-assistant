@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.wav
+*.log
+*.csv
+*.json
+*.txt
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+
+.idea/
+.idea
