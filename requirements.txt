@@ -1,0 +1,4 @@
+twilio
+openai
+celery
+redis
