@@ -12,7 +12,7 @@ twilio_phone_number = os.environ["TWILIO_PHONE_NUMBER"]
 openai_api_key = os.environ["OPENAI_API_KEY"]
 
 # Set up the Celery app
-celery_app = Celery("tasks", broker="redis://localhost:6379/0", backend="redis://localhost:6379/0")
+celery_app = Celery("tasks", broker=os.getenv('CELERY_BROKER_URL'), backend=os.getenv('CELERY_RESULT_BACKEND'))
 
 openai.api_key = openai_api_key
 
