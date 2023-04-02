@@ -3,3 +3,4 @@ openai
 celery
 redis
 python-dotenv
+flask
