@@ -2,3 +2,4 @@ twilio
 openai
 celery
 redis
+python-dotenv
