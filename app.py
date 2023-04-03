@@ -84,14 +84,15 @@ def send_response(response, to_phone_number):
     :param to_phone_number:    The phone number to send the response to
     :return:    None
     """
-    # Implement the response sending using Twilio here
-    # https://www.twilio.com/docs/quickstart/python/sms
-    client = Client(twilio_account_sid, twilio_auth_token)
-    message = client.messages.create(
-        body=response,
-        from_=twilio_phone_number,
-        to=to_phone_number
-    )
+    print(response)
+    # # Implement the response sending using Twilio here
+    # # https://www.twilio.com/docs/quickstart/python/sms
+    # client = Client(twilio_account_sid, twilio_auth_token)
+    # message = client.messages.create(
+    #     body=response,
+    #     from_=twilio_phone_number,
+    #     to=to_phone_number
+    # )
 
 
 # Set up the Flask app
