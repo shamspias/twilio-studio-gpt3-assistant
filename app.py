@@ -5,6 +5,9 @@ from celery import Celery
 from twilio.rest import Client
 from flask import Flask, request, Response
 from dotenv import load_dotenv
+import asyncio
+import websockets
+import json
 
 load_dotenv()
 
@@ -77,22 +80,34 @@ def generate_gpt_response(text):
     return response["choices"][0]["message"]["content"].strip()
 
 
+async def send_data_to_crm_websocket(data):
+    async with websockets.connect("wss://example.com/crm-websocket-url") as websocket:
+        await websocket.send(json.dumps(data))
+
+
 def send_response(response, to_phone_number):
     """
-    Send the response back to the user using Twilio
+    Send the response back to the user using Twilio and to the CRM webhook
     :param response:   The response to send back to the user
     :param to_phone_number:    The phone number to send the response to
     :return:    None
     """
     print(response)
-    # # Implement the response sending using Twilio here
-    # # https://www.twilio.com/docs/quickstart/python/sms
+
+    # Send the response using Twilio
     # client = Client(twilio_account_sid, twilio_auth_token)
     # message = client.messages.create(
     #     body=response,
     #     from_=twilio_phone_number,
     #     to=to_phone_number
     # )
+
+    # Send the response to the CRM using WebSocket
+    crm_websocket_data = {
+        "phone_number": to_phone_number,
+        "response": response,
+    }
+    asyncio.get_event_loop().run_until_complete(send_data_to_crm_websocket(crm_websocket_data))
 
 
 # Set up the Flask app
