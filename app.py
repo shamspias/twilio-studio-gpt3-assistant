@@ -107,7 +107,8 @@ def send_response(response, to_phone_number):
         "phone_number": to_phone_number,
         "response": response,
     }
-    asyncio.get_event_loop().run_until_complete(send_data_to_crm_websocket(crm_websocket_data))
+    # Send the data to the CRM WebSocket
+    # asyncio.get_event_loop().run_until_complete(send_data_to_crm_websocket(crm_websocket_data))
 
 
 # Set up the Flask app
