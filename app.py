@@ -80,9 +80,9 @@ def generate_gpt_response(text):
     return response["choices"][0]["message"]["content"].strip()
 
 
-async def send_data_to_crm_websocket(data):
-    async with websockets.connect("wss://example.com/crm-websocket-url") as websocket:
-        await websocket.send(json.dumps(data))
+# async def send_data_to_crm_websocket(data):
+#     async with websockets.connect("wss://example.com/crm-websocket-url") as websocket:
+#         await websocket.send(json.dumps(data))
 
 
 def send_response(response, to_phone_number):
@@ -125,7 +125,11 @@ def webhook():
     to_phone_number = request.form.get("To")
 
     if recording_url and to_phone_number:
-        process_voice_message.delay(recording_url, to_phone_number)
+        print("Received voice message from Twilio")
+        print("Recording URL: ", recording_url)
+        # process_voice_message.delay(recording_url, to_phone_number)
+        task = process_voice_message.apply_async(args=[recording_url, to_phone_number])
+        task.get()
         return Response(status=200)
     else:
         return Response(status=400)
