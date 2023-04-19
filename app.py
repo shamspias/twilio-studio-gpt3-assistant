@@ -5,6 +5,7 @@ from celery import Celery
 from twilio.rest import Client
 from flask import Flask, request, Response
 from dotenv import load_dotenv
+import speech_recognition as sr
 import asyncio
 import websockets
 import json
@@ -69,8 +70,14 @@ def convert_voice_to_text(file_path):
     """
     # Implement the Whisper ASR API integration here
     file_name = os.path.basename(file_path)
-    transcript = openai.Audio.transcribe("whisper-1", file_name)
-    return transcript["text"].strip()
+    r = sr.Recognizer()
+    with sr.AudioFile(file_name) as source:
+        audio_data = r.record(source)
+        text = r.recognize_google(audio_data)
+
+    text = text.lower()
+
+    return text
 
 
 def generate_gpt_response(text):
