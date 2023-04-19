@@ -9,6 +9,9 @@ import asyncio
 import websockets
 import json
 
+# Set up the Flask app
+app = Flask(__name__)
+
 load_dotenv()
 
 # Configure Twilio, OpenAI, and Whisper API credentials
@@ -17,16 +20,15 @@ twilio_auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-# Set up the Celery app
-celery_app = Celery("app", broker=os.getenv('CELERY_BROKER_URL'), backend=os.getenv('CELERY_RESULT_BACKEND'))
+# Initialize Celery
+celery = Celery(app.name, broker=os.getenv('CELERY_BROKER_URL'))
+celery.conf.update(result_backend=os.getenv('CELERY_RESULT_BACKEND'), task_serializer='json', result_serializer='json',
+                   accept_content=['json'])
 
 openai.api_key = openai_api_key
 
-# Set up the Flask app
-app = Flask(__name__)
 
-
-@celery_app.task
+@celery.task
 def process_voice_message(recording_url, to_phone_number):
     """
     Process the voice message and send a response back to the user
