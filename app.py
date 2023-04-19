@@ -22,6 +22,9 @@ celery_app = Celery("tasks", broker=os.getenv('CELERY_BROKER_URL'), backend=os.g
 
 openai.api_key = openai_api_key
 
+# Set up the Flask app
+app = Flask(__name__)
+
 
 @celery_app.task
 def process_voice_message(recording_url, to_phone_number):
@@ -43,7 +46,8 @@ def process_voice_message(recording_url, to_phone_number):
     response = generate_gpt_response(text)
 
     # Send the response back to the user
-    send_response(response, to_phone_number)
+    # send_response(response, to_phone_number)
+    return response
 
 
 def convert_voice_to_text(file_path):
@@ -111,10 +115,6 @@ def send_response(response, to_phone_number):
     # asyncio.get_event_loop().run_until_complete(send_data_to_crm_websocket(crm_websocket_data))
 
 
-# Set up the Flask app
-app = Flask(__name__)
-
-
 @app.route("/webhook", methods=["POST"])
 def webhook():
     print(request.form)  # Add this line to debug the request parameters
@@ -125,7 +125,9 @@ def webhook():
     if recording_url and from_phone_number:
         print("Received voice message from Twilio")
         print("Recording URL: ", recording_url)
-        process_voice_message.apply_async(args=[recording_url, from_phone_number])
+        task = process_voice_message.apply_async(args=[recording_url, from_phone_number])
+        response = task.get()
+        print("Response: ", response)
         return Response(status=200)
     else:
         return Response(status=400)
