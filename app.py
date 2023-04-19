@@ -117,19 +117,14 @@ app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    """
-    This is the webhook that Twilio will call when a voice message is received.
-    :return:  Response
-    """
     print(request.form)  # Add this line to debug the request parameters
-
     recording_url = request.form.get("RecordingUrl")
-    to_phone_number = request.form.get("To")
+    from_phone_number = request.form.get("From")  # Change this line to get the "From" parameter
 
-    if recording_url and to_phone_number:
+    if recording_url and from_phone_number:
         print("Received voice message from Twilio")
         print("Recording URL: ", recording_url)
-        process_voice_message.apply_async(args=[recording_url, to_phone_number])
+        process_voice_message.apply_async(args=[recording_url, from_phone_number])
         return Response(status=200)
     else:
         return Response(status=400)
