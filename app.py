@@ -117,6 +117,7 @@ app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    print(request)  # Add this line to debug the request parameters
     print(request.form)  # Add this line to debug the request parameters
     recording_url = request.form.get("RecordingUrl")
     from_phone_number = request.form.get("From")  # Change this line to get the "From" parameter
