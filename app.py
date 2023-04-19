@@ -95,7 +95,7 @@ def generate_gpt_response(text):
         messages=[
                      {"role": "system",
                       "content": "You are an AI that expertise to make resume. you make resume for everyone with "
-                                 "proper section and format."}
+                                 "proper section and format. You don't need more information to make a resume you can make a resume out of name."}
                  ] + message_list
     )
 
