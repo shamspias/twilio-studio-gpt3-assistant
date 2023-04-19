@@ -57,7 +57,8 @@ def convert_voice_to_text(file_path):
     :return:   The text from the voice message
     """
     # Implement the Whisper ASR API integration here
-    transcript = openai.Audio.transcribe("whisper-1", file_path)
+    file_name = os.path.basename(file_path)
+    transcript = openai.Audio.transcribe("whisper-1", file_name)
     return transcript["text"].strip()
 
 
