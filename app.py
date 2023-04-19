@@ -127,9 +127,7 @@ def webhook():
     if recording_url and to_phone_number:
         print("Received voice message from Twilio")
         print("Recording URL: ", recording_url)
-        # process_voice_message.delay(recording_url, to_phone_number)
-        task = process_voice_message.apply_async(args=[recording_url, to_phone_number])
-        task.get()
+        process_voice_message.apply_async(args=[recording_url, to_phone_number])
         return Response(status=200)
     else:
         return Response(status=400)
