@@ -127,7 +127,7 @@ def generate_gpt_keyword_response(text):
 
 
 def send_data_to_webhook(payload):
-    webhook_url = "https://devis.mutuello.com/api/phoneticket/resume"
+    webhook_url = "https://devis.mutuello.com/api/twilio/messagescall"
     headers = {"Content-Type": "application/json"}
 
     response = requests.post(webhook_url, json=payload, headers=headers)
