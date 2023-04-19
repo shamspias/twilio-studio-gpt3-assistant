@@ -121,6 +121,8 @@ def webhook():
     This is the webhook that Twilio will call when a voice message is received.
     :return:  Response
     """
+    print(request.form)  # Add this line to debug the request parameters
+
     recording_url = request.form.get("RecordingUrl")
     to_phone_number = request.form.get("To")
 
