@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import asyncio
 import websockets
 import json
+import uuid
 
 # Set up the Flask app
 app = Flask(__name__)
@@ -38,14 +39,22 @@ def process_voice_message(recording_url, to_phone_number):
     """
     # Download the voice message
     response = requests.get(recording_url)
-    with open("voice_message.wav", "wb") as f:
+
+    file_id = str(uuid.uuid4())
+    wav_file_name = f"voice_message_{file_id}"
+
+    wav_file = wav_file_name + ".wav"
+
+    with open(wav_file, "wb") as f:
         f.write(response.content)
 
     # Convert voice to text using Whisper API
-    text = convert_voice_to_text("voice_message.wav")
+    text = convert_voice_to_text(wav_file)
 
     # Send the text to GPT-3.5 and get a response
     response = generate_gpt_response(text)
+
+    os.remove(wav_file)
 
     # Send the response back to the user
     # send_response(response, to_phone_number)
@@ -131,6 +140,7 @@ def webhook():
         task = process_voice_message.apply_async(args=[recording_url, from_phone_number])
         response = task.get()
         print("Response: ", response)
+
         return Response(status=200)
     else:
         return Response(status=400)
