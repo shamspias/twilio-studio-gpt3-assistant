@@ -31,7 +31,7 @@ openai.api_key = openai_api_key
 
 
 @celery.task
-def process_voice_message(recording_url, to_phone_number):
+def process_voice_message(recording_url, to_phone_number, recording_sid):
     """
     Process the voice message and send a response back to the user
     :param recording_url:  The URL of the voice message
@@ -55,10 +55,12 @@ def process_voice_message(recording_url, to_phone_number):
     # Send the text to GPT-3.5 and get a response
     response = generate_gpt_response(text)
 
-    os.remove(wav_file)
+    keywords = generate_gpt_keyword_response(text)
 
     # Send the response back to the user
-    # send_response(response, to_phone_number)
+    send_response(id_conv=recording_sid, recording_url=recording_url, voicemessage_transcription=wav_file,
+                  voicemessage_resume=response, voicemessage_tags=keywords, to_phone_number=to_phone_number)
+    os.remove(wav_file)
     return response
 
 
@@ -92,11 +94,27 @@ def generate_gpt_response(text):
         model="gpt-3.5-turbo",
         messages=[
                      {"role": "system",
-                      "content": "You are an AI named sonic and you are in a conversation with a human. You can answer "
-                                 "questions, provide information, and help with a wide variety of tasks."},
-                     {"role": "user", "content": "Who are you?"},
-                     {"role": "assistant",
-                      "content": "I am the sonic powered by ChatGpt.Contact me sonic@deadlyai.com"},
+                      "content": "You are an AI that expertise to make resume. you make resume for everyone with "
+                                 "proper section and format."}
+                 ] + message_list
+    )
+
+    return response["choices"][0]["message"]["content"].strip()
+
+
+def generate_gpt_keyword_response(text):
+    """
+    Send the text to GPT-3.5 and get a response
+    :param text:  The text to send to GPT-3.5
+    :return:  The response from GPT-3.5
+    """
+    # Implement the OpenAI API integration here
+    message_list = [{"role": "user", "content": text}]
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                     {"role": "system",
+                      "content": "You are an AI that expertise to make keywords based on the topic."}
                  ] + message_list
     )
 
@@ -108,30 +126,42 @@ def generate_gpt_response(text):
 #         await websocket.send(json.dumps(data))
 
 
-def send_response(response, to_phone_number):
+def send_data_to_webhook(payload):
+    webhook_url = "https://devis.mutuello.com/api/phoneticket/resume"
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(webhook_url, json=payload, headers=headers)
+
+    if response.status_code != 200:
+        print(f"Error sending data to webhook: {response.status_code}, {response.text}")
+    else:
+        print("Data sent successfully to webhook")
+
+
+def send_response(id_conv, recording_url, voicemessage_transcription, voicemessage_resume, voicemessage_tags,
+                  to_phone_number):
     """
     Send the response back to the user using Twilio and to the CRM webhook
-    :param response:   The response to send back to the user
-    :param to_phone_number:    The phone number to send the response to
-    :return:    None
+    :param id_conv: The conversation ID
+    :param recording_url: The recording URL
+    :param voicemessage_transcription: The text to voice transcription
+    :param voicemessage_resume: The voice message resume
+    :param voicemessage_tags: The voice message tags
+    :param to_phone_number: The phone number to send the response to
+    :return: None
     """
-    print(response)
+    print(voicemessage_resume)
 
-    # Send the response using Twilio
-    # client = Client(twilio_account_sid, twilio_auth_token)
-    # message = client.messages.create(
-    #     body=response,
-    #     from_=twilio_phone_number,
-    #     to=to_phone_number
-    # )
-
-    # Send the response to the CRM using WebSocket
-    crm_websocket_data = {
-        "phone_number": to_phone_number,
-        "response": response,
+    # Send the response to the CRM using a webhook
+    payload = {
+        "id_conv": id_conv,
+        "recording_url": recording_url,
+        "voicemessage_transcription": voicemessage_transcription,
+        "voicemessage_resume": voicemessage_resume,
+        "voicemessage_tags": voicemessage_tags,
     }
-    # Send the data to the CRM WebSocket
-    # asyncio.get_event_loop().run_until_complete(send_data_to_crm_websocket(crm_websocket_data))
+
+    send_data_to_webhook(payload)
 
 
 @app.route("/webhook", methods=["POST"])
@@ -139,12 +169,13 @@ def webhook():
     print(request.form)  # Add this line to debug the request parameters
 
     recording_url = request.form.get("RecordingUrl")
+    recording_sid = request.form.get("RecordingSid")
     from_phone_number = "+8801784056345"  # Change this line to get the "From" parameter
 
     if recording_url and from_phone_number:
         print("Received voice message from Twilio")
         print("Recording URL: ", recording_url)
-        task = process_voice_message.apply_async(args=[recording_url, from_phone_number])
+        task = process_voice_message.apply_async(args=[recording_url, from_phone_number, recording_sid])
         response = task.get()
         print("Response: ", response)
 
